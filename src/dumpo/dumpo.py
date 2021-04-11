@@ -1,3 +1,5 @@
+import re
+
 def dumpo(obj, **kwargs):
     _level = 0
     as_is = []
@@ -48,6 +50,7 @@ def dumpo(obj, **kwargs):
     if isinstance(as_is, str):
         as_is = [as_is]
 
+
     def getQuotes(quotesSpec, defaultB, defaultE):
         b = defaultB
         e = defaultE
@@ -61,12 +64,14 @@ def dumpo(obj, **kwargs):
                 e = quotesSpec[1]
         return b, e
 
+
     def escapeQuotes(s, b, e):
         ret = s
         # Only if the begin and end quotes are the same
         if b and b == e:
             ret = ret.replace(b, '\\' + b)
         return ret
+
 
     def jsonTreat(obj):
         ret = f'{obj}'
@@ -75,13 +80,14 @@ def dumpo(obj, **kwargs):
             ret = '"' + escapeQuotes(ret, '"', '"') + '"'
         return ret
 
+
     def typeToShow(obj):
         ret = ''
         my_type_name = type(obj).__name__
-        if show_all_types or (show_types and not my_type_name in (
-        'str', 'int', 'float', 'bool', 'dict', 'list', 'tuple', 'NoneType')):
+        if show_all_types or (show_types and not my_type_name in ('str', 'int', 'float', 'bool', 'dict', 'list', 'tuple', 'NoneType')):
             ret = f'<{my_type_name}>'
         return ret
+
 
     def typeAnalyser(obj):
         type_iter = 'o'  # Object (scalar)
@@ -123,17 +129,21 @@ def dumpo(obj, **kwargs):
 
         return type_name, type_iter, keyed, bracket_begin, bracket_end
 
+
     def typeDesc(type_name, type_iter, keyed, bracket_begin, bracket_end):
         return f'<{type_name}>' + bracket_begin + (type_iter.upper() if keyed else type_iter) + bracket_end
 
+
     def keyIgnored(k):
         return isinstance(k, str) and k.startswith('__') and k.endswith('__')
+
 
     def attrGenItem(obj):
         n = 0
         for item in obj:
             yield {n: item}
             n += 1
+
 
     def attrGenSubscript(obj):
         for item in obj:
@@ -145,6 +155,7 @@ def dumpo(obj, **kwargs):
                 yield {itemStr: excluded_tag}
             else:
                 yield {itemStr: obj[item]}
+
 
     def attrGenAttribute(obj):
         for item in obj.__dict__:
@@ -165,6 +176,7 @@ def dumpo(obj, **kwargs):
                     pass
             for func in func_list:
                 yield {f'{func}()': {}}
+
 
     if _level > maxdepth:
         return jsonTreat(too_deep_tag)
