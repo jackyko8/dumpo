@@ -148,18 +148,18 @@ def dumpo(obj, **kwargs):
     def attrGenSubscript(obj):
         for item in obj:
             # item may have a structure
-            itemStr = f'{item}'
-            if itemStr in excluded:
+            if f'{item}' in excluded:
                 if excluded_tag == '':
                     continue
-                yield {itemStr: excluded_tag}
+                yield {item: excluded_tag}
             else:
-                yield {itemStr: obj[item]}
+                yield {item: obj[item]}
 
 
     def attrGenAttribute(obj):
         for item in obj.__dict__:
-            if item in excluded:
+            # item may have a structure
+            if f'{item}' in excluded:
                 if excluded_tag == '':
                     continue
                 yield {item: excluded_tag}
