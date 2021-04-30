@@ -6,9 +6,11 @@ def dumpo(obj, **kwargs):
     as_is_tag = "<as_is>"
     compressed = True
     debug = False
+    deep_types = []
     excluded = []
     excluded_tag = "<excluded>"
     expand_keys = False
+    include_all_keys = False
     include_functions = False
     indent = "| "
     item_quotes = None
@@ -32,6 +34,7 @@ def dumpo(obj, **kwargs):
     as_is_tag = kwargs.get('as_is_tag', as_is_tag)
     compressed = kwargs.get('compressed', compressed)
     debug = kwargs.get('debug', debug)
+    deep_types = kwargs.get('deep_types', deep_types)
     excluded = kwargs.get('excluded', excluded)
     excluded_tag = kwargs.get('excluded_tag', excluded_tag)
     expand_keys = kwargs.get('expand_keys', expand_keys)
@@ -40,15 +43,19 @@ def dumpo(obj, **kwargs):
     item_quotes = kwargs.get('item_quotes', item_quotes)
     maxdepth = kwargs.get('maxdepth', maxdepth)
     quotes = kwargs.get('quotes', quotes)
+    include_all_keys = kwargs.get('include_all_keys', include_all_keys)
     show_all_types = kwargs.get('show_all_types', show_all_types)
     show_types = kwargs.get('show_types', show_types)
     too_deep_tag = kwargs.get('too_deep_tag', too_deep_tag)
 
-    if isinstance(excluded, str):
-        excluded = [excluded]
-
     if isinstance(as_is, str):
         as_is = [as_is]
+
+    if isinstance(deep_types, str):
+        deep_types = [deep_types]
+
+    if isinstance(excluded, str):
+        excluded = [excluded]
 
 
     def getQuotes(quotesSpec, defaultB, defaultE):
@@ -157,29 +164,35 @@ def dumpo(obj, **kwargs):
 
 
     def attrGenAttribute(obj):
-        for item in obj.__dict__:
+        item_list = obj.__dict__
+        if include_all_keys:
+            item_list = dir(obj)
+        for item in item_list:
             # item may have a structure
-            if f'{item}' in excluded:
-                if excluded_tag == '':
-                    continue
-                yield {item: excluded_tag}
-            else:
-                yield {item: getattr(obj, item)}
-        if include_functions:
-            func_list = []
-            for func in dir(obj):
-                try:
-                    # Filter func first to avoid deprecation warning in callable
-                    if not func == 'fields' and not keyIgnored(func) and callable(getattr(obj, func)):
-                        func_list.append(func)
-                except:
-                    pass
-            for func in func_list:
-                yield {f'{func}()': {}}
+            if not keyIgnored(item):
+                attr = getattr(obj, item)
+                isFunc = callable(attr)
+                if f'{item}' in excluded:
+                    if excluded_tag == '':
+                        continue
+                    if isFunc:
+                        yield {f'{item}()': excluded_tag}
+                    else:
+                        yield {item: excluded_tag}
+                else:
+                    if include_functions and isFunc:
+                        yield {f'{item}()': {}}
+                    elif not isFunc:
+                        yield {item: attr}
 
 
-    if _level > maxdepth:
-        return jsonTreat(too_deep_tag)
+    type_name, type_iter, keyed, bracket_begin, bracket_end = typeAnalyser(obj)
+
+    if _level > maxdepth and not type_name in deep_types:
+        ret = jsonTreat(too_deep_tag)
+        if debug:
+            ret += typeDesc(type_name, type_iter, keyed, bracket_begin, bracket_end)
+        return ret
 
     kwargs['_level'] = _level + 1
 
@@ -189,7 +202,6 @@ def dumpo(obj, **kwargs):
     preStr = indent * (_level + 1)  # The indentation of the elements of the object
     postStr = lineBreak  # End of the previous line
 
-    type_name, type_iter, keyed, bracket_begin, bracket_end = typeAnalyser(obj)
     attrGen = {'i': attrGenItem, 's': attrGenSubscript, 'a': attrGenAttribute, 'o': None}[type_iter]
 
     quoteB, quoteE = getQuotes(quotes, '', '')
@@ -243,7 +255,12 @@ def dumpo(obj, **kwargs):
                 continue
             n += 1
             ret += postStr + preStr
-            objStr = typeToShow(itemObj) + dumpo(itemObj, **kwargs)
+            objStr = typeToShow(itemObj)
+            if type(itemObj) == type(obj):
+                # Same as parent. To avoid recursion, display as is (quietly)
+                objStr += jsonTreat(f'{itemObj}')
+            else:
+                objStr += dumpo(itemObj, **kwargs)
             if keyed:
                 # Do not use f'...' as the quote strings may form an unwanted bracket
                 ret += item_quoteB
