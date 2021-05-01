@@ -4,7 +4,7 @@ Dumpo serialises a Python object recursively to arbitrary levels, optionally in 
 
 Synopsis:
 ```python
-from dumpo import *
+from dumpo import dumpo
 obj_str = dumpo(obj)
 print(obj_str)
 ```
@@ -37,14 +37,14 @@ Keyword arguments:
 ## Examples
 
 ```python
->>> from dumpo import *
+>>> from dumpo import dumpo
 >>> import boto3
 >>> ec2 = boto3.client('ec2')
 >>> response = ec2.describe_instances()
 >>> print(dumpo(response, maxdepth=1))
 {
 | Reservations: [ <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep> ],
-| ResponseMetadata: {'RequestId': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'cache-control': 'no-cache, no-store', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'content-type': 'text/xml;charset=UTF-8', 'transfer-encoding': 'chunked', 'vary': 'accept-encoding', 'date': 'Fri, dd Mmm yyyy HH:MM:SS GMT', 'server': 'AmazonEC2'}, 'RetryAttempts': 0}
+| ResponseMetadata: {'RequestId': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'cache-control': 'no-cache, no-store', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'content-type': 'text/xml;charset=UTF-8', 'transfer-encoding': 'chunked', 'vary': 'accept-encoding', 'date': 'Dow, dd Mmm yyyy HH:MM:SS GMT', 'server': 'AmazonEC2'}, 'RetryAttempts': 0}
 }
 >>> print(dumpo(response['Reservations'][0], maxdepth=1))
 {
@@ -58,13 +58,13 @@ Keyword arguments:
 | AmiLaunchIndex: 0,
 | ImageId: "ami-xxxxxxxxxxxxxxxxx",
 | InstanceId: "i-xxxxxxxxxxxxxxxxx",
-| InstanceType: "t2.micro",
+| InstanceType: "x9.xxxx",
 | KeyName: "xxx",
 | LaunchTime: <datetime>yyyy-mm-dd HH:MM:SS+00:00,
 | Monitoring: {'State': 'disabled'},
-| Placement: {'AvailabilityZone': 'ap-southeast-2c', 'GroupName': '', 'Tenancy': 'default'},
-| PrivateDnsName: "ip-999-999-999-999.ap-southeast-2.compute.internal",
-| PrivateIpAddress: "999.999.999.999",
+| Placement: {'AvailabilityZone': 'xx-xxxxxx-9x', 'GroupName': '', 'Tenancy': 'default'},
+| PrivateDnsName: "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+| PrivateIpAddress: "99.99.99.99",
 | ProductCodes: [],
 | PublicDnsName: "",
 | State: {'Code': 80, 'Name': 'stopped'},
@@ -84,19 +84,19 @@ Keyword arguments:
 | | | Attachment: {'AttachTime': datetime.datetime(yyyy, mm, dd, HH, MM, SS, tzinfo=tzutc()), 'AttachmentId': 'eni-attach-0eb44e06cead04be4', 'DeleteOnTermination': True, 'DeviceIndex': 0, 'Status': 'attached', 'NetworkCardIndex': 0},
 | | | Description: "Primary network interface",
 | | | Groups: [ {
-| | | | | GroupName: "ssh-basic",
+| | | | | GroupName: "ssh-xxx",
 | | | | | GroupId: "sg-xxxxxxxxxxxxxxxxx"
 | | | | } ],
 | | | Ipv6Addresses: [],
 | | | MacAddress: "xx:xx:xx:xx:xx:xx",
 | | | NetworkInterfaceId: "eni-xxxxxxxxxxxxxxxxx",
 | | | OwnerId: "999999999999",
-| | | PrivateDnsName: "ip-999-999-999-999.ap-southeast-2.compute.internal",
-| | | PrivateIpAddress: "999.999.999.999",
+| | | PrivateDnsName: "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+| | | PrivateIpAddress: "99.99.99.99",
 | | | PrivateIpAddresses: [ {
 | | | | | Primary: True,
-| | | | | PrivateDnsName: "ip-999-999-999-999.ap-southeast-2.compute.internal",
-| | | | | PrivateIpAddress: "999.999.999.999"
+| | | | | PrivateDnsName: "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+| | | | | PrivateIpAddress: "99.99.99.99"
 | | | | } ],
 | | | SourceDestCheck: True,
 | | | Status: "in-use",
@@ -107,7 +107,7 @@ Keyword arguments:
 | RootDeviceName: "/dev/xvda",
 | RootDeviceType: "ebs",
 | SecurityGroups: [ {
-| | | GroupName: "ssh-basic",
+| | | GroupName: "ssh-xxx",
 | | | GroupId: "sg-xxxxxxxxxxxxxxxxx"
 | | } ],
 | SourceDestCheck: True,
@@ -122,6 +122,114 @@ Keyword arguments:
 | HibernationOptions: {'Configured': False},
 | MetadataOptions: {'State': 'applied', 'HttpTokens': 'optional', 'HttpPutResponseHopLimit': 1, 'HttpEndpoint': 'enabled'},
 | EnclaveOptions: {'Enabled': False}
+}
+>>> print(dumpo(response['Reservations'][0]['Instances'][0], too_deep_tag='...', json_like=True))
+{
+  "AmiLaunchIndex": 0,
+  "ImageId": "ami-xxxxxxxxxxxxxxxxx",
+  "InstanceId": "i-xxxxxxxxxxxxxxxxx",
+  "InstanceType": "x9.xxxx",
+  "KeyName": "xxx",
+  "LaunchTime": "yyyy-mm-dd HH:MM:SS+00:00",
+  "Monitoring": {
+    "State": "disabled"
+  },
+  "Placement": {
+    "AvailabilityZone": "xx-xxxxxx-9x",
+    "GroupName": "",
+    "Tenancy": "default"
+  },
+  "PrivateDnsName": "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+  "PrivateIpAddress": "99.99.99.99",
+  "ProductCodes": "[]",
+  "PublicDnsName": "",
+  "State": {
+    "Code": 80,
+    "Name": "stopped"
+  },
+  "StateTransitionReason": "User initiated (yyyy-mm-dd HH:MM:SS GMT)",
+  "SubnetId": "subnet-xxxxxxxx",
+  "VpcId": "vpc-xxxxxxxx",
+  "Architecture": "x86_64",
+  "BlockDeviceMappings": [ {
+      "DeviceName": "/dev/xvda",
+      "Ebs": {
+        "AttachTime": "yyyy-mm-dd HH:MM:SS+00:00",
+        "DeleteOnTermination": "True",
+        "Status": "attached",
+        "VolumeId": "vol-xxxxxxxxxxxxxxxxx"
+      }
+    } ],
+  "ClientToken": "",
+  "EbsOptimized": "False",
+  "EnaSupport": "True",
+  "Hypervisor": "xen",
+  "NetworkInterfaces": [ {
+      "Attachment": {
+        "AttachTime": "yyyy-mm-dd HH:MM:SS+00:00",
+        "AttachmentId": "eni-attach-xxxxxxxxxxxxxxxxx",
+        "DeleteOnTermination": "True",
+        "DeviceIndex": 0,
+        "Status": "attached",
+        "NetworkCardIndex": 0
+      },
+      "Description": "Primary network interface",
+      "Groups": [ {
+          "GroupName": "ssh-xxx",
+          "GroupId": "sg-xxxxxxxxxxxxxxxxx"
+        } ],
+      "Ipv6Addresses": "[]",
+      "MacAddress": "xx:xx:xx:xx:xx:xx",
+      "NetworkInterfaceId": "eni-xxxxxxxxxxxxxxxxx",
+      "OwnerId": "999999999999",
+      "PrivateDnsName": "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+      "PrivateIpAddress": "99.99.99.99",
+      "PrivateIpAddresses": [ {
+          "Primary": "True",
+          "PrivateDnsName": "ip-99-99-99-99.xx-xxxxxx-9.compute.internal",
+          "PrivateIpAddress": "99.99.99.99"
+        } ],
+      "SourceDestCheck": "True",
+      "Status": "in-use",
+      "SubnetId": "subnet-xxxxxxxx",
+      "VpcId": "vpc-xxxxxxxx",
+      "InterfaceType": "interface"
+    } ],
+  "RootDeviceName": "/dev/xvda",
+  "RootDeviceType": "ebs",
+  "SecurityGroups": [ {
+      "GroupName": "ssh-xxx",
+      "GroupId": "sg-xxxxxxxxxxxxxxxxx"
+    } ],
+  "SourceDestCheck": "True",
+  "StateReason": {
+    "Code": "Client.UserInitiatedShutdown",
+    "Message": "Client.UserInitiatedShutdown: User initiated shutdown"
+  },
+  "Tags": [ {
+      "Key": "Name",
+      "Value": "xxx"
+    } ],
+  "VirtualizationType": "hvm",
+  "CpuOptions": {
+    "CoreCount": 1,
+    "ThreadsPerCore": 1
+  },
+  "CapacityReservationSpecification": {
+    "CapacityReservationPreference": "open"
+  },
+  "HibernationOptions": {
+    "Configured": "False"
+  },
+  "MetadataOptions": {
+    "State": "applied",
+    "HttpTokens": "optional",
+    "HttpPutResponseHopLimit": 1,
+    "HttpEndpoint": "enabled"
+  },
+  "EnclaveOptions": {
+    "Enabled": "False"
+  }
 }
 ```
 

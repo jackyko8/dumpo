@@ -1,6 +1,9 @@
 import re
 
+
 def dumpo(obj, **kwargs):
+    _known_type = ('str', 'int', 'float', 'bool', 'dict', 'list', 'tuple', 'NoneType')
+
     _level = 0
     as_is = []
     as_is_tag = "<as_is>"
@@ -91,7 +94,7 @@ def dumpo(obj, **kwargs):
     def typeToShow(obj):
         ret = ''
         my_type_name = type(obj).__name__
-        if show_all_types or (show_types and not my_type_name in ('str', 'int', 'float', 'bool', 'dict', 'list', 'tuple', 'NoneType')):
+        if show_all_types or (show_types and not my_type_name in _known_type):
             ret = f'<{my_type_name}>'
         return ret
 
@@ -256,7 +259,7 @@ def dumpo(obj, **kwargs):
             n += 1
             ret += postStr + preStr
             objStr = typeToShow(itemObj)
-            if type(itemObj) == type(obj):
+            if type(itemObj).__name__ not in _known_type and type(itemObj) == type(obj):
                 # Same as parent. To avoid recursion, display as is (quietly)
                 objStr += jsonTreat(f'{itemObj}')
             else:

@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="dumpo",
-    version="0.0.4",
+    version="0.0.5",
     author="Jacky Ko",
     author_email="jko@accsoft.com.au",
     description="Dumpo Python Object Serialiser",
