@@ -24,7 +24,7 @@ Keyword arguments:
 | expand_keys       | If True serialise structured item keys, else show them as a string. i.e., `print(f'{itemKey}')` | Boolean         | `False`       |
 | include_all_keys  | If True include all keys including internal ones (`_<name>`) and built-in ones (`__<name>`) excluding `__dict__`. | Boolean | `False` |
 | include_everything | Equivalent to `include_all_keys=True, include_functions=True, expand_keys=True`, with `__dict__` included. | Boolean | `False` |
-| include_internals | If True include internal keys (`_<name>`) but not built-in ones (`__<name>`). |  |  |
+| include_internals | If True include internal keys (`_<name>`) but not built-in ones (`__<name>`). | Boolean | `False` |
 | include_functions | If True include object function names (including internal functions if `include_all_keys` is also True). | Boolean         | `False`       |
 | indent            | String used for indentation, repeat for the number of levels | String          | `"\| "`   |
 | item_quotes       | Quotation marks for item keys - a 2-character string for open and close respectively; a 1-character string if open and close are the same; blank means no quotation marks for item keys | String          | `None`        |
