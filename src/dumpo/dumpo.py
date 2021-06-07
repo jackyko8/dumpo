@@ -2,11 +2,46 @@ import re
 
 
 def dumpo(obj, **kwargs):
-    _known_type = ('str', 'int', 'float', 'bool', 'dict', 'list', 'tuple', 'NoneType')
+    _known_type = (
+        'str',
+        'int',
+        'float',
+        'bool',
+        'dict',
+        'list',
+        'tuple',
+        'NoneType'
+    )
+
+    _valid_kwargs = (
+        '_level',
+        'as_is',
+        'as_is_tag',
+        'code_tag',
+        'compressed',
+        'debug',
+        'deep_types',
+        'excluded',
+        'excluded_tag',
+        'expand_keys',
+        'include_all_keys',
+        'include_everything',
+        'include_internals',
+        'include_functions',
+        'indent',
+        'item_quotes',
+        'json_like',
+        'maxdepth',
+        'quotes',
+        'show_all_types',
+        'show_types',
+        'too_deep_tag',
+    )
 
     _level = 0
     as_is = []
     as_is_tag = "<as_is>"
+    code_tag = "<code>"
     compressed = True
     debug = False
     deep_types = []
@@ -14,6 +49,8 @@ def dumpo(obj, **kwargs):
     excluded_tag = "<excluded>"
     expand_keys = False
     include_all_keys = False
+    include_everything = False
+    include_internals = False
     include_functions = False
     indent = "| "
     item_quotes = None
@@ -24,7 +61,6 @@ def dumpo(obj, **kwargs):
     show_types = True
     too_deep_tag = "<too_deep>"
 
-    # Allow overriding; otherwise, put this block after all kwargs init
     json_like = kwargs.get('json_like', json_like)
     if json_like:
         indent = '  '
@@ -35,12 +71,14 @@ def dumpo(obj, **kwargs):
     _level = kwargs.get('_level', _level)
     as_is = kwargs.get('as_is', as_is)
     as_is_tag = kwargs.get('as_is_tag', as_is_tag)
+    code_tag = kwargs.get('code_tag', code_tag)
     compressed = kwargs.get('compressed', compressed)
     debug = kwargs.get('debug', debug)
     deep_types = kwargs.get('deep_types', deep_types)
     excluded = kwargs.get('excluded', excluded)
     excluded_tag = kwargs.get('excluded_tag', excluded_tag)
     expand_keys = kwargs.get('expand_keys', expand_keys)
+    include_internals = kwargs.get('include_internals', include_internals)
     include_functions = kwargs.get('include_functions', include_functions)
     indent = kwargs.get('indent', indent)
     item_quotes = kwargs.get('item_quotes', item_quotes)
@@ -60,6 +98,32 @@ def dumpo(obj, **kwargs):
     if isinstance(excluded, str):
         excluded = [excluded]
 
+    # Override other includes
+    include_everything = kwargs.get('include_everything', include_everything)
+    if include_everything:
+        expand_keys = True
+        include_all_keys = True
+        include_functions = True
+    elif not '__dict__' in excluded:
+        # Hard exclude
+        excluded.append('__dict__')
+
+
+    # Check for unknown kwargs
+    class UnknownKwargs(Exception):
+        pass
+
+    _unknown_kwargs = []
+    for kwa in kwargs:
+        if not kwa in _valid_kwargs:
+            _unknown_kwargs.append(kwa)
+    try:
+        if len(_unknown_kwargs):
+            raise UnknownKwargs
+    except UnknownKwargs:
+        if _level == 0:
+            print(f'Unknown key word arguments ignored: {", ".join(_unknown_kwargs)}')
+        pass
 
     def getQuotes(quotesSpec, defaultB, defaultE):
         b = defaultB
@@ -144,13 +208,44 @@ def dumpo(obj, **kwargs):
         return f'<{type_name}>' + bracket_begin + (type_iter.upper() if keyed else type_iter) + bracket_end
 
 
-    def keyIgnored(k):
-        return isinstance(k, str) and k.startswith('__') and k.endswith('__')
+    def keyIgnored(obj, item):
+        ignored = False
+
+        # Not ignoring non-string items
+        if isinstance(item, str):
+            isFunc = False
+            isBuiltIn = False
+            isInternal = False
+
+            try:
+                isFunc = callable(getattr(obj, item))
+            except:
+                pass
+            if item.startswith('__'):
+                isBuiltIn = True
+            elif item.startswith('_'):
+                isInternal = True
+
+            if include_all_keys:
+                # Only exclude __dict__
+                if item == '__dict__':
+                    ignored = True
+            else:
+                if isBuiltIn:
+                    ignored = True
+                elif not include_internals and isInternal:
+                    ignored = True
+                elif not include_functions and isFunc:
+                    ignored = True
+
+        return ignored
 
 
     def attrGenItem(obj):
         n = 0
         for item in obj:
+            if keyIgnored(obj, item):
+                continue
             yield {n: item}
             n += 1
 
@@ -158,6 +253,8 @@ def dumpo(obj, **kwargs):
     def attrGenSubscript(obj):
         for item in obj:
             # item may have a structure
+            if keyIgnored(obj, item):
+                continue
             if f'{item}' in excluded:
                 if excluded_tag == '':
                     continue
@@ -167,26 +264,28 @@ def dumpo(obj, **kwargs):
 
 
     def attrGenAttribute(obj):
-        item_list = obj.__dict__
-        if include_all_keys:
-            item_list = dir(obj)
+        # item_list = obj.__dict__
+        # if include_all_keys or include_functions:
+        #     item_list = dir(obj)
+        item_list = dir(obj)
         for item in item_list:
             # item may have a structure
-            if not keyIgnored(item):
-                attr = getattr(obj, item)
-                isFunc = callable(attr)
-                if f'{item}' in excluded:
-                    if excluded_tag == '':
-                        continue
-                    if isFunc:
-                        yield {f'{item}()': excluded_tag}
-                    else:
-                        yield {item: excluded_tag}
+            if keyIgnored(obj, item):
+                continue
+            attr = getattr(obj, item)
+            isFunc = callable(attr)
+            if f'{item}' in excluded:
+                if excluded_tag == '':
+                    continue
+                if isFunc:
+                    yield {f'{item}()': excluded_tag}
                 else:
-                    if include_functions and isFunc:
-                        yield {f'{item}()': {}}
-                    elif not isFunc:
-                        yield {item: attr}
+                    yield {item: excluded_tag}
+            else:
+                if isFunc:
+                    yield {f'{item}()': code_tag}
+                else:
+                    yield {item: attr}
 
 
     type_name, type_iter, keyed, bracket_begin, bracket_end = typeAnalyser(obj)
@@ -221,7 +320,7 @@ def dumpo(obj, **kwargs):
             else:
                 # The 'excluded' tag appears as a string.
                 # It is not blank as the generator should have filtered excluded_tag == ''
-                if obj == excluded_tag:
+                if obj == excluded_tag or obj == code_tag:
                     ret += obj
                 else:
                     if quoteB == '' and quoteE == '':
@@ -254,7 +353,7 @@ def dumpo(obj, **kwargs):
                 # Only one loop
                 itemKey = x
                 itemObj = item[x]
-            if keyed and keyIgnored(itemKey):
+            if keyed and keyIgnored(itemObj, itemKey):
                 continue
             n += 1
             ret += postStr + preStr
@@ -267,7 +366,7 @@ def dumpo(obj, **kwargs):
             if keyed:
                 # Do not use f'...' as the quote strings may form an unwanted bracket
                 ret += item_quoteB
-                if expand_keys:
+                if expand_keys and not isinstance(itemKey, str):
                     itemKey = dumpo(itemKey, **kwargs)
                 ret += escapeQuotes(f'{itemKey}', item_quoteB, item_quoteE)
                 ret += item_quoteE + ': '

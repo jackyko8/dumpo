@@ -15,14 +15,17 @@ Keyword arguments:
 | ----------------- | ------------------------------------------------------------ | --------------- | ------------- |
 | as_is             | Data type name or list of them to be shown as is. i.e., `print(f'{obj}')` | List or string | `[]`          |
 | as_is_tag         | String to append to a data item serialised "as is"           | String          | `"<as_is>"` |
+| code_tag | String to replace function code | String | `"<code>"` |
 | compressed        | If True compress list to a single line instead of one data item per line | Boolean         | `True`        |
 | debug             | If True append debug information to each data item, e.g., data type, quotes to use and iterator | Boolean         | `False`       |
 | deep_types | Data type names or list of them to be shown even the item is at level `maxdepth+1` | List or string | `[]` |
 | excluded          | Data item names or list of them to be excluded from serialisation | List or string  | `[]`          |
 | excluded_tag      | String to replace excluded data items. Blank to hide all excluded data items. | String        | `"<excluded>"` |
 | expand_keys       | If True serialise structured item keys, else show them as a string. i.e., `print(f'{itemKey}')` | Boolean         | `False`       |
-| include_all_keys | If True include all keys made available by `dir(obj)` (instead of `obj.__dict__`) | Boolean | `False` |
-| include_functions | If True include object functions (function names only with no code) | Boolean         | `False`       |
+| include_all_keys  | If True include all keys including internal ones (`_<name>`) and built-in ones (`__<name>`) excluding `__dict__`. | Boolean | `False` |
+| include_everything | Equivalent to `include_all_keys=True, include_functions=True, expand_keys=True`, with `__dict__` included. | Boolean | `False` |
+| include_internals | If True include internal keys (`_<name>`) but not built-in ones (`__<name>`). |  |  |
+| include_functions | If True include object function names (including internal functions if `include_all_keys` is also True). | Boolean         | `False`       |
 | indent            | String used for indentation, repeat for the number of levels | String          | `"\| "`   |
 | item_quotes       | Quotation marks for item keys - a 2-character string for open and close respectively; a 1-character string if open and close are the same; blank means no quotation marks for item keys | String          | `None`        |
 | json_like         | If True serialise in JSON format - implying `indent="  "` and `item_quotes = '"'`, and `False` for `show_types` and `show_all_types`. | Boolean         | `False`       |
@@ -44,7 +47,12 @@ Keyword arguments:
 >>> print(dumpo(response, maxdepth=1))
 {
 | Reservations: [ <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep>, <too_deep> ],
-| ResponseMetadata: {'RequestId': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'HTTPStatusCode': 200, 'HTTPHeaders': {'x-amzn-requestid': 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx', 'cache-control': 'no-cache, no-store', 'strict-transport-security': 'max-age=31536000; includeSubDomains', 'content-type': 'text/xml;charset=UTF-8', 'transfer-encoding': 'chunked', 'vary': 'accept-encoding', 'date': 'Dow, dd Mmm yyyy HH:MM:SS GMT', 'server': 'AmazonEC2'}, 'RetryAttempts': 0}
+| ResponseMetadata: {
+| | RequestId: <too_deep>,
+| | HTTPStatusCode: <too_deep>,
+| | HTTPHeaders: <too_deep>,
+| | RetryAttempts: <too_deep>
+| }
 }
 >>> print(dumpo(response['Reservations'][0], maxdepth=1))
 {
