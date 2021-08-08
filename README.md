@@ -13,7 +13,7 @@ Keyword arguments:
 
 | Argument          | Description                                                  | Type            | Default Value |
 | ----------------- | ------------------------------------------------------------ | --------------- | ------------- |
-| as_is             | Data type name or list of them to be shown as is. i.e., `print(f'{obj}')` | List or string | `[]`          |
+| as_is             | Data type name or list of them to be shown as is. i.e., `f'{obj}'` | List or string | `[]`          |
 | as_is_tag         | String to append to a data item serialised "as is"           | String          | `"<as_is>"` |
 | code_tag | String to replace function code | String | `"<code>"` |
 | compressed        | If True compress list to a single line instead of one data item per line | Boolean         | `True`        |

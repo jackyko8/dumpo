@@ -189,14 +189,19 @@ def dumpo(obj, **kwargs):
             try:
                 for x in obj:
                     try:
-                        dummy = obj[x]
+                        _ = obj[x]
                     except:
                         type_iter = 'i'  # Item: item for item in obj
-                        bracket_begin, bracket_end = '[', ']'
                     else:
                         type_iter = 's'  # Subscript: obj[item] for item in obj
+                        if f'{x}' == f'{obj[0]}':
+                            type_iter = 'i'
+                            # It is actually an item, just that the object
+                            # is acceptable to subscribe (like ndarray)
                     # Just one loop
                     break
+                if type_iter == 'i':
+                    bracket_begin, bracket_end = '[', ']'
             except:
                 # Cannot even loop; stay as object
                 pass
@@ -271,6 +276,8 @@ def dumpo(obj, **kwargs):
         for item in item_list:
             # item may have a structure
             if keyIgnored(obj, item):
+                continue
+            if not hasattr(obj, item):
                 continue
             attr = getattr(obj, item)
             isFunc = callable(attr)
