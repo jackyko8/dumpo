@@ -1,4 +1,5 @@
 import re
+import copy
 
 
 def dumpo(obj, **kwargs):
@@ -186,18 +187,19 @@ def dumpo(obj, **kwargs):
             type_iter = 'a'  # Attribute: getattr(obj, item) for item in obj.__dict__
         elif not isinstance(obj, str):
             # Failing all that, try actual looping
+            _obj = copy.deepcopy(obj)
             try:
-                for x in obj:
+                for x in _obj:
                     try:
-                        _ = obj[x]
+                        _ = _obj[x]
                     except:
                         type_iter = 'i'  # Item: item for item in obj
                     else:
                         type_iter = 's'  # Subscript: obj[item] for item in obj
-                        if f'{x}' == f'{obj[0]}':
+                        if f'{x}' == f'{_obj[0]}':
                             type_iter = 'i'
                             # It is actually an item, just that the object
-                            # is acceptable to subscribe (like ndarray)
+                            # is acceptable to subscripts (like ndarray)
                     # Just one loop
                     break
                 if type_iter == 'i':
@@ -394,5 +396,7 @@ def dumpo(obj, **kwargs):
 
     if _level == 0:
         ret = typeToShow(obj) + ret
+        if debug:
+            ret += typeDesc(type_name, type_iter, keyed, bracket_begin, bracket_end)
 
     return ret

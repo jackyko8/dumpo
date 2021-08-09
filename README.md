@@ -5,8 +5,7 @@ Dumpo serialises a Python object recursively to arbitrary levels, optionally in 
 Synopsis:
 ```python
 from dumpo import dumpo
-obj_str = dumpo(obj)
-print(obj_str)
+print(dumpo(obj))
 ```
 
 Keyword arguments:
@@ -240,4 +239,3 @@ Keyword arguments:
   }
 }
 ```
-
